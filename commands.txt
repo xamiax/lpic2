@@ -1,0 +1,3 @@
+sar und iostat (in sysstat enthalten)
+  lesen /proc aus ohne schreibzugriff, daher keine rootrechte notwendig.
+
