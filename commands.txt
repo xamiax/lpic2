@@ -1,3 +1,36 @@
 sar und iostat (in sysstat enthalten)
   lesen /proc aus ohne schreibzugriff, daher keine rootrechte notwendig.
+  sar/iostat $zeitabstand $anzahlMessungen
+    -b I/O-Transferraten
+  /etc/init.s/sysstat -> ENABLED="true"
+  /etc/init.d/sysstat start
+  sysstat -A
+  iostat
+    -c CPUlast
+    -d verwendung von datenträgern
+    -h human read
+    -x extended stats
 
+vmstat
+  prozesse, speicher, I/O, cpu, system(interrupts/sec)
+  -a all (aktive und inaktive speicher)
+  -d disk (stats zu festplattenzugriffen)
+  -D zusammenfassung von festplattenstats
+  -s tabelle
+  -f anzahl der Forks
+
+netstat
+  für netzwerkverbindungen und routing-tabellen
+  
+ps
+  -a alle benutzer
+  -u +startzeit, pfad, benutzer
+  -x terminal unabhängige
+  -C $prozess zeigt alle instanzen
+  -U $benutzer eine bestimmten benutzers
+
+pstree
+  -a argumente bei aufruf
+  -G bessere grafische ausgabe
+  -p pid
+  -n sortierung nach pid
