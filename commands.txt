@@ -1,3 +1,4 @@
+--- 200 ---
 sar und iostat (in sysstat enthalten)
   lesen /proc aus ohne schreibzugriff, daher keine rootrechte notwendig.
   sar/iostat $zeitabstand $anzahlMessungen
@@ -34,3 +35,23 @@ pstree
   -G bessere grafische ausgabe
   -p pid
   -n sortierung nach pid
+
+uptime
+  time, uptime, # active users, avg. systemlast (1,5,15 min)
+
+w
+  uptime
+  table of logged in users
+
+lsof
+  list open files
+
+collectd
+  auswertung mit rrdtool
+  grafische oberflächen
+    cacti (php5 + mysql)
+    mrtg (php5 + mysql + snmpd)
+  nagios
+
+
+--- 201 ---
