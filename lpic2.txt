@@ -55,8 +55,9 @@ collectd
 
 
 --- 201 ---
---- 201.2 ---
 
+
+--- 201.2 ---
 /usr/src/<kernel version>
 
 .config file -> alle informationen zur kompilierung des kernels
@@ -81,3 +82,50 @@ ab kernel 2.6
 
 
 cp /usr/src/linux/arch/i386/boot/bzImage /boot/vmlinuz-<kernel version>
+
+--- 201.3 ---
+monolithisch -> keine module nachladbar
+modular aufgebaut -> module beliebig nachladbar und entladbar
+
+/usr/src/linux-2.6.38.4-21.9
+/usr/src/linux -> softlink
+/boot/vmlinuz-2.6.38.4-21.9 -> softlink
+
+Module in /lib/modules/2.6.38.4/kernel/
+Abhängigkeiten in Datei /lib/modules/2.6.38.4/kernel/modules.dep
+Module waren .o-Dateien vor 2.6 und sind nun .ko-Dateien (KernelObjekt)
+
+uname gibt Kernelversion
+-r nur Kernelversion
+-a alle Infos
+
+lsmod
+Status des laufenden Kernels, geladene Module.
+Greift auf /proc/modules/ zu.
+
+modinfo
+Gibt Infos zu einem bestimmten Modul aus.
+-a zeigt nur Autor
+-d zeigt nur Beschreibung
+-l zeigt nur Lizenz
+-p zeigt nur zu übergebende Parameter
+-n zeigt nur den Dateinamen des Moduls
+
+insmod
+lädt Module im laufenden Betrieb nach.
+als parameter vollständiger pfad nötig.
+
+rmmod
+entlädt Module im laufenden Betrieb.
+modulname reicht aus.
+noch verwendete module werden nicht entladen.
+-v verbose
+-f force, wenn modul noch in verwendung
+
+modprobe
+vereint insmod und rmmod.
+modulname reicht aus.
+-r entlädt module
+-f force
+
+depmod
