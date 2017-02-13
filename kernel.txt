@@ -1,0 +1,26 @@
+--- 201.2 ---
+
+/usr/src/<kernel version>
+
+.config file -> alle informationen zur kompilierung des kernels
+  make config
+  make menuconfig
+  make xconfig
+  make gconfig
+  make oldconfig
+  make cloneconfig
+
+  make dep		checks dependencies and creates .depend-files
+  make clean		deletes old compiles and .depend-files		
+  make [b]zImage	creates static part of kernel
+  make modules		compiles modules
+  make modules_install	installs modules (in /lib/modules/<kernel version>
+
+  make dep clean bzImage modules modules_install 
+
+ab kernel 2.6
+  make modules
+  make modules_install
+
+
+cp /usr/src/linux/arch/i386/boot/bzImage /boot/vmlinuz-<kernel version>
