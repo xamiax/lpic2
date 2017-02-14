@@ -1,6 +1,6 @@
 --- 200 ---
 sar und iostat (in sysstat enthalten)
-  lesen /proc aus ohne schreibzugriff, daher keine rootrechte notwendig.
+  lesen /proc aus ohne schreibzugriff, daher keine rootrechte notwendig
   sar/iostat $zeitabstand $anzahlMessungen
     -b I/O-Transferraten
   /etc/init.s/sysstat -> ENABLED="true"
@@ -96,36 +96,158 @@ Abhängigkeiten in Datei /lib/modules/2.6.38.4/kernel/modules.dep
 Module waren .o-Dateien vor 2.6 und sind nun .ko-Dateien (KernelObjekt)
 
 uname gibt Kernelversion
--r nur Kernelversion
--a alle Infos
+  -r nur Kernelversion
+  -a alle Infos
 
 lsmod
-Status des laufenden Kernels, geladene Module.
-Greift auf /proc/modules/ zu.
+  Status des laufenden Kernels, geladene Module
+  Greift auf /proc/modules/ zu
 
 modinfo
-Gibt Infos zu einem bestimmten Modul aus.
--a zeigt nur Autor
--d zeigt nur Beschreibung
--l zeigt nur Lizenz
--p zeigt nur zu übergebende Parameter
--n zeigt nur den Dateinamen des Moduls
+  Gibt Infos zu einem bestimmten Modul aus
+  -a zeigt nur Autor
+  -d zeigt nur Beschreibung
+  -l zeigt nur Lizenz
+  -p zeigt nur zu übergebende Parameter
+  -n zeigt nur den Dateinamen des Moduls
 
 insmod
-lädt Module im laufenden Betrieb nach.
-als parameter vollständiger pfad nötig.
+  lädt Module im laufenden Betrieb nach
+  als parameter vollständiger pfad nötig
 
 rmmod
-entlädt Module im laufenden Betrieb.
-modulname reicht aus.
-noch verwendete module werden nicht entladen.
--v verbose
--f force, wenn modul noch in verwendung
+  entlädt Module im laufenden Betrieb
+  modulname reicht aus
+  noch verwendete module werden nicht entladen
+  -v verbose
+  -f force, wenn modul noch in verwendung
 
 modprobe
-vereint insmod und rmmod.
-modulname reicht aus.
--r entlädt module
--f force
+  vereint insmod und rmmod
+  modulname reicht aus
+  -r entlädt module
+  -f force
 
 depmod
+  abhängigkeiten in /lib/modules/VERSION/kernel/modules.dep
+  depmod aktualisiert die datei
+  -n trockenlauf mit ausgabe auf stdout
+  -A prüft vorher, ob neue module hinzugekommen sind
+
+modules.dep
+  modul0: modul1 modul2 modul3
+  modul0 hängt von den modulen hinter ':' ab
+
+modules.conf modprobe.conf modprobe.conf.local
+  steuern das verhalten von modprobe
+  in /etc/
+  modules.conf bei neueren versionen nicht mehr benutzt
+  modprobe.conf.local wird von konfigurationsfrontends nicht verändert, daher gut für manuelle konfiguration
+
+/proc/sys/kernel/
+  kernel legt hier konfigurationsinformationen in dateien an
+  bspl: osrelease ostype hostname modprobe
+
+dmesg
+  kernel ring buffer auslesen udn steuern
+  buffer befindet sich in /proc/kmsg/
+  meldungen wie in /var/log/messages bzw /var/log/syslog
+  dmesg | tail
+  -c (clear) löscht buffer inhalt nach ausgabe
+  -r (raw) rohausgabe mit loglevel-präfixen
+  -s BUFFERSIZE 
+  -n LOGLVL legt fest, welche loglevel angezeigt werden. 1-8. 1 panikmeldungen
+
+/sbin/lspci
+  greift auf /usr/share/misc/pci.ids zu
+  zeigt über den pci-bus angeschlossene geräte an
+  -v verbose
+  -vv more verbose
+  -vvv most verbose
+  -x infos als hexdump
+  -xxx
+  -xxxx
+  -k zeigt zum gerät zugehörige kernel treiber und module
+  -m machine readable
+  -mm
+
+lsusb
+  greift auf /var/lib/usbutils/usb.ids zu
+  zeigt uber den usb-bus angeschlossene geräte an
+  -v verbose
+  -d VENDORID:PRODUCTID
+
+/usr/bin/lsdev
+  greift auf /proc/interrupts /proc/ioports /proc/dma zu
+
+strace
+  zeigt alle systemaufrufe während der ausführung eines commands an
+  strace COMMAND
+  -c counter
+ltrace
+  zeigt noch alle bibliotheken an, die benutzt werden
+
+strings
+  gibt druckbare zeichen einer datei aus
+
+lsof
+  zeigt dateien an, die in benutzung sind
+  -t gibt nur die id aus zb für kill
+    kill -9 $(lsof -t /dev/sdb1)
+
+  -i iwas mit internet
+
+udev
+  löst devfs ab
+  konfigdateien in /etc/udev/
+  /etc/udev/udev.conf legt protokollierungsgrad fest
+    udev_log="err"
+    udev_root=/dev
+    udev_rules=/etc/udev
+  /etc/udev/rules.d
+    werden alphanumerisch abgearbeitet
+    nach regeländerungen daemon neustarten mit
+      /etc/init.d/udev restart
+
+udevmonitor
+  heutzutage udevadm monitor
+  
+sysctl
+  kernel paramter zur laufzeit ändern
+  -w (write) ändern einer einstellung
+    sysctl -w kernel.domaine="beispiel.com"
+  parameter gelten nur bis neustart
+  dauerhafte änderungen in /etc/sysctl.conf
+  oder .conf-datei in /etc/sysctl.d/
+
+analyse von protokolldateien
+  fast alle logs in /var/log
+  /var/log/messages - in allen linux
+  /var/log/syslog - nicht in allen
+  grep kernel /var/log/messages
+  /var/log/apache/access.log - apache webserver
+  /var/log/squid/access.log - squid proxy
+  /var/log/samba/* - samba server
+  /var/log/auth.log - diverse authentifizierungsanbieter (pam)
+  /var/log/mail.* - sämtlich mailserverdienste (smtp,imap,pop)
+
+analyse vom /proc-dateisystem
+  /proc liegt im ram
+  schnittstelle zum kernel
+  verzeichnisse für prozesse (name pid)
+    cpuinfo     - infos über cpu
+    dma         - verwendete dma-kanäle
+    interrupts  - verwendete interrupts (irq)
+    ioports     - aktuell registrierte input output ports
+    meminfo     - detaillierte auskunft über speicherverwendung
+    modules     - liste geladener kernel-module (lsmod holt hier infos)
+  wichtige unterverzeichnisse
+    /proc/sys/kernel/
+    /proc/sys/net/
+  änderungen in /proc/ nur bis neustart
+  dauerhafte änderungen in /etc/sysctl.conf
+  oder .conf-datei in /etc/sysctl.d/
+
+
+
+--- 202 ---
