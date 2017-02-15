@@ -1,4 +1,4 @@
---- 200 ---
+--- 200.1 ---
 sar und iostat (in sysstat enthalten)
   lesen /proc aus ohne schreibzugriff, daher keine rootrechte notwendig
   sar/iostat $zeitabstand $anzahlMessungen
@@ -46,6 +46,8 @@ w
 lsof
   list open files
 
+
+--- 200.2 ---
 collectd
   auswertung mit rrdtool
   grafische oberflächen
@@ -54,7 +56,7 @@ collectd
   nagios
 
 
---- 201 ---
+--- 201.1 ---
 
 
 --- 201.2 ---
@@ -82,6 +84,7 @@ ab kernel 2.6
 
 
 cp /usr/src/linux/arch/i386/boot/bzImage /boot/vmlinuz-<kernel version>
+
 
 --- 201.3 ---
 monolithisch -> keine module nachladbar
@@ -249,5 +252,140 @@ analyse vom /proc-dateisystem
   oder .conf-datei in /etc/sysctl.d/
 
 
+--- 202.1 ---
+runlevel
+  0 - schaltet sich aus
+  1 - (S) single user, kein netzwerk, keine grafik
+  2 - keine grafik, multi user, vllt netzwerk
+  3 - multi user, netzwerk, vllt grafik
+  4 - 
+  5 - multi user, netzwerk, grafik - falls vorhanden
+  6 - reboot
 
---- 202 ---
+konfigurationsdatei /etc/inittab
+  programmdatei in /sbin/
+  > # The default runlevel is defined here
+  > id:3:initdefault:
+    
+  >1:2345:respawn:/sbin/mingetty tty1
+    ID der konsole:verfügbare runlvl:neustart, wenn beendet:befehl name
+
+  > # what to do when CTRL-ALT-DEL is pressed
+  > ca::ctrlaltdel:/sbin/shutdow -r -t 4 now
+
+basisverzeichnis für init skripte meist /etc/init.d/ /etc.rc.d/
+init skripte kennen start stop
+manche auch noch status reload
+/etc/rc1.d/ /etc/rc2.d/ etc.
+  je nach runlvl arbeitet init die skripte des verzeichnisses durch
+  in den verzeichnissen sind nur softlinks
+  [S|K][00-99][NAME] [start/kill][reihenfolge][name]
+tools für die softlinks und abhängigkeiten
+  redhat -> chkconfig
+  debian -> update-rc.d
+
+chkconfig
+  --add neuen service hinzufügen
+  --del entfernt service
+  --on schalte service für bestimmten runlvl an
+  --off schalte service für bestimmten runlvl aus
+  --list zeige alle verwaltete service und runlvl an
+
+update-rc.d ssh defaults
+                disable
+                enable
+                remove (-f)
+
+runlevel
+  zeigt aktuellen runlevel an
+
+init / telinit
+  init 1 wechselt in single user
+    init s oder init S gehen auch
+  init 0 fährt herunter
+  init 6 rebootet
+  benutzer werden nicht gewarnt
+
+methoden um rechner herunterzufahren
+  shutdown
+  poweroff 
+  halt
+  reboot
+  init
+
+shutdown für administratoren am besten
+  benutzer werden gewarnt
+  programme bekommen kill -15
+  nach gewisser zeit kill -9
+  -r reboot
+  -h halt
+  -t time in sek
+  -k nur konsolenmeldung schicken, nicht herunterfahren
+  -f kein fsck, falls fällig bei neustart
+  -F fsck, bei neustart
+
+
+--- 202.2 ---
+mbr backup
+  dd if=/dev/sd* of=mbr.backup ibs=512 count=1
+
+GRUB
+  grub legace
+    /boot/grub/stage1
+    /boot/grub/stage2 (eigentlich 3)
+
+  grub manuell starten mittels prompt
+    grub> root (hd0,0)
+    grub> kernel /boot/vmlinuz-2.6.23.1-10.fc7 root=/dev/sda2
+    grub> initrd /boot/initrd-2.6.23.1-10.fc7.img
+    grub> boot
+
+  /boot/grub/device.map
+    > (hd0)    /dev/sda
+
+  /boot/grub/menu.lst -> /boot/grub/grub.conf
+    > #boot=/dev/sda
+    > default=0
+    > timeout=5
+    > splashimage=(hd0,0)/grub/splash.xpm.gz
+    > hiddenmenu
+    > title Fedora (2.6.23.1-10.fc7)
+    >     root (hd0,0)
+    >     kernel /vmlinuz-2.6.23.1-10.fc7 ro
+    >     root=/dev/VolGroup00/LogVol00 rhgb quiet
+    >     initrd /initrd-2.6.23.1-10.fc7.img
+
+GRUB2
+
+dateisystem prüfen und reparieren
+  $ mount | grep sdb
+  $ umount /dev/sdb1
+  $ lsof /dev/sdb1
+  $ umount /dev/sdb1
+  $ dmesg | tail -n 20
+  $ umount /dev/sdb1
+  $ fsck -t ext4 -V /dev/sdb1
+  $ mount /dev/sdb1 && dmesg | tail
+
+fsck
+  filesystemcheck
+  -t FSTYPE
+  -a repariere alle fehler ohne zu fragen
+  -y beantworte alle fragen mit yes
+  -A überprüfe alles fs in /etc/fstab
+  -V verbose
+
+/etc/fstab
+  > errors=remount-ro
+    bei zugriffsstörung wird fs nur read only gemounted
+
+  $ mount /dev/sdb1 -o remount,rw
+  $ mount /dev/sdb1 -o remount,ro
+
+init ram disk erzeugen
+  redhat -> mkinitrd
+  debian -> mkinitramfs
+
+
+--- 202.3 ---
+
