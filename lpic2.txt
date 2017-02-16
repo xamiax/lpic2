@@ -388,4 +388,23 @@ init ram disk erzeugen
 
 
 --- 202.3 ---
+lilo
+  ide=nodma
+  apm=off
+  acpi=off
 
+  init=/sbin/init 2
+
+  beim start von lilo wird 'lilo' ausgegeben
+  je stufe ein buchstabe
+  je früher ein fehler auftritt, desto weniger buchstaben
+  > ''     -> 1. stufe wurde nicht ausgeführt
+  > 'l'    -> /boot/boot.b konnte nicht geladen werden (festplattenfehler?)
+  > 'li'   -> /boot/boot.b wurde gelesen, aber nicht ausgeführt (datei beschädigt?)
+  > 'lil'  -> 2. stufe wurde gestartet, map-datei wurde nicht gelesen (fehl. bootlaufwerk?)
+  > 'lil?' -> 2. stufe wurde in falschem speicherbereich geladen
+  > 'lil-' -> map-datei ist ungültig (lilo-map-installer nach bootkonf-änderung nicht durchgeführt?)
+  > 'lilo' -> 2. stufe wurde geladen
+
+/etc/lilo.conf
+  
