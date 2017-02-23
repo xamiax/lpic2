@@ -530,35 +530,24 @@ tune2fs
   -l   infos zu superblocks
 
 debugfs
-  interaktives tool zum untersuchen und modifizieren von ext dateisystemen
-  mit lsdel gelöschte dateien auf dem dateisystem anzeigen
-  dump <INODE> /DEISRED/DIRECTORY/ zum wiederherstellen
-  dateisystem darf dazu nicht gemeountet sein
+  interaktiv
+  ext partitionen untersuchen und modifizieren
+  gelöschte daten mit lsdel
+  dump <INODE> /DESIRED/DIRECTORY/
 
 dumpe2fs
-  infos über ext dateisysteme
 
 mke2fs
   -c   integrität eines dateisystems überprüfen
 
 btrfs-tools
-  btrfs neues dateisystem möglicherweise ext ersatz
-  fsck.btrfs eigenese programm (kein link auf fsck)
+  btrfs wird vllt ext ersetzen
+    schnappschüsse
+    16 EiB partition
+    fsck im laufenden betrieb
+    datenkompression
+    integriertes raid
+    mehrere wurzelverzeichnisse
+  fsck.btrfs ist eigenes programm
 
-fdisk
-  -l   partitionstabelle anzeigen
 
-  n   neue partition
-  -> p/e   primär oder erweiter
-  -> 1-4   nummer der partition
-  -> 1-x   erster zylinder
-  p   partitionstabelle anzeigen
-  w   partitionen schreiben
-
-mkfs
-  mkfs.ext2
-    -j   ext3
-  mkfs.ext3 -> hardlink auf mkfs.ext2
-  mkfs.ext4 -> hardlink auf mkfs.ext2
-  mkfs.msdos -> softlink mkdosfs
-  mkfs.vfat -> softlink mkdosfs
