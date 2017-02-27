@@ -556,9 +556,46 @@ fdisk
   w   partitionen schreiben
 
 mkfs
+  -t TYPE   (type) den dateisystemtyp festlegen
+  -c   (check) dateisystem auf fehlerhafte sektoren prüfen
+  -v   (verbose)
+  -j   (journal) erstellt journal für ext3
+  -L LABEL   (label) Bezeichnung für dateisystem angeben
   mkfs.ext2
     -j   ext3
   mkfs.ext3 -> hardlink auf mkfs.ext2
   mkfs.ext4 -> hardlink auf mkfs.ext2
   mkfs.msdos -> softlink mkdosfs
   mkfs.vfat -> softlink mkdosfs
+  mkfs.ntfs
+  mkfs.xfs -> recht große datenmengen im cache um fragmentierung zu
+    minimieren. dadurch datenverlust gefahr bei stromausfall.
+  mkfs.cramfs -> read only fs für embedded systems
+  mkfs.jfs 
+  mkfs.btrfs -> eigenständiges programm pkg: btrfs-tools
+
+mke2fs
+  hardlink mit mkfs.ext2 mkfs.ext3 mkfs.ext4
+
+xfs
+  linux partitionstyp (83)
+  ermöglicht journal auf anderem dateisystem (muss eingehängt sein)
+  pkg xfsprogs
+  pkg xfsdump
+  
+mkswap
+  swap partitionstyp (82)
+  $ mkswap /dev/sda4
+  $ swapon -v /dev/sda4   -> ohne -v keine ausgabe
+  $ swapoff -v /dev/sda4
+  /etc/fstab
+    > /dev/sda4     swap    swap   pri=42    0 0
+  swapfile
+    $ dd if=/dev/zero of=/swapfile bs=1024 count=524288
+    $ mkswap /swapfile
+    $ swapon /swapfile
+    /etc/fstab
+      > /swapfile    swap    swap    defaults    0 0
+  $ cat /proc/swaps ->   zum sichergehen dass swap aktiviert wurde
+
+
