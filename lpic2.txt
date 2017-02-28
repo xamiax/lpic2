@@ -598,4 +598,158 @@ mkswap
       > /swapfile    swap    swap    defaults    0 0
   $ cat /proc/swaps ->   zum sichergehen dass swap aktiviert wurde
 
+xfs_info xfs_check xfs_repair xfs_fsr
+  sehr robustes dateisystem
+  $ xfs_fsr   -> dateisystem reorganisieren
+  $ xfs_info /MOUNT/POINT   -> geometrie des dateisystems überprüfen (eingehängt)
+  $ xfs_check /GERÄTE/DATEI [-l /JOURNAL/PARTITION]   -> fsck (ausgehängt)
+  $ xfs_repair /GERÄTE/DATEI   -> reparieren
 
+  $ xfsdump -v trace -f /media/backup/sicherung1 /xfsdisk
+  $ xfsrestore -f /media/backup/sicherung1 /xfsdisk
+
+smartd smartctl 
+  technologie, die festplattenausfälle vorhersieht (~64%)
+  pkg smartmontools
+  $ smartctl   -> gefolgt von greätedatei des laufwerks
+    -i   grundlegende informationen zu dateisystem
+    -a   alle smart-parameter eines laufwerks ausgeben
+    --scan   sucht nach laufwerken und gibt für jedes gerät, typ und protokoll aus
+    -H   (health) gesundheitscheck des laufwerks
+  $ smartd
+    konfiguration notwendig
+    /etc/default/smartmontools
+    > enable_smart="/dev/sda"   -> welches laufwerk
+    > start_smartd=yes   -> starte smartd bei systemstart
+    > smartd_opts="--interval=3600"   -> überprüfung jede stunde
+    /etc/smartd.conf
+    $ /etc/init.d/smartmontools start
+    $ grep smartd /var/log/syslog
+
+
+--- 203.3 ---
+automount
+  pkg autofs
+  hauptkonfigurationsdatei /etc/auto.master
+  > /misc    /etc/auto.misc
+  /etc/auto.misc
+  > cd       -fstype=iso9660,ro,nosuid,nodev    :/dev/cdrom
+  > floppy   -fstype=auto                       :/dev/fd0
+    /misc/cd
+    /misc/floppy
+  nicht mehr gebräuchlich
+  hald und dbus übernehmen heutzutage diese aufgabe
+
+  nfs freigabe als automount einrichten
+    $ mkdir /netz
+    /etc/auto.master
+    > /netz     /etc/auto.netz     --timeout=60
+    /etc/auto.netz
+    > storage     -fs=nfs,defaults      archangel:/storage
+    $ ln -s /netz/storage /home/USER/Desktop/storage
+  nur änderungen in /etc/auto.master benötigen restart
+  $ /etc/init.d/autofs restart
+
+mkisofs
+  dateisystem erstellen für optische speicher
+  iso9660 für cd
+  udf für dvd
+  $ mkisofs -r -J -l -ldots -o etc.iso /etc
+  -r   (rock ridge) nutzerberechtigungen werden mitgespeichert
+  -l   (long) lange dateinamen bis 31 zeichen
+  -ldots   erlaubt . am anfang von dateinamen (.file -> _file)
+  -o   outputfile
+  -J   (joliet) für windows nutzung (dateinamen länge 64)
+  -udf   udf dateisystem für dvd
+    für gute portierung -r und -J benutzen
+
+  iso einhängen
+    $ mkdir /test
+    $ mount -t iso9660 -o loop /home/USER/etc.iso /test
+
+cdrecord
+  teilweise auch als wodim bekannt
+  wodim kann aber keine blu-ray oder double-layer-dvd
+  $ cdrecord -scanbus   -> prüft ob pc ein unterstütztes laufwerk hat
+    > 4,0,0    400) 'TSSTcorp' 'CDDVDW SH-S223B ' 'SB01' Removable CD-ROM
+      4,0,0   -> ist die ID des laufwerks
+  $ cdrecord --devices
+    > wodim: Overview of accessible drives (1 found) :
+    > -------------------------------------------------------------------------
+    >  0  dev='/dev/sr0'	rwrw-- : 'Optiarc' 'DVD RW AD-7240S'
+    > -------------------------------------------------------------------------
+  $ cdrecord -v -dummy dev=/dev/sr0 /home/USER/etc.iso
+    -dummy simuliert nur den schreibvorgang
+
+cryptsetup
+  $ modprobe dm_mod   -> lädt notwendiges modul für den device mapper
+  $ cryptsetup luksFormat /dev/sdb1   -> verschlüsselt das angegeben dateisystem
+  $ cryptsetup luksOpen /dev/sdb1 safe   -> erzeugt die gerätedatei /dev/mapper/safe
+  $ mkfs.ext2 /dev/mapper/safe   -> erzeugt ext2 dateisystem auf gerät
+  $ mkdir /safe   -> ordner als mountpoint erzeugen
+  $ mount /dev/mapper/safe /safe   -> mounten
+  alternativen
+    DM-Crypt
+    cryptloop
+    loop-aes
+    truecrypt
+
+
+--- 204.1 ---
+raid
+  redundant array of inexpensive disks
+  -> redundant array of independet disks
+  software raid benötigt keinen controller -> billiger
+  cpu muss sich um verwaltung der daten im raid kümmern -> langsamer
+  software raid können festplatten verschieden groß sein
+  hardware raid benutzt ganze laufwerke
+  software raid benutzt nur partitionen
+
+mdadm
+  $ lsmod | grep md_mod   -> prüfe ob notwendiges kernel modul für multiple disks geladen ist
+    ansonsten mit insmod bzw modprobe nachladen
+  partitionen vom typ linux raid (fd) notwendig
+  $ mdadm --create --verbose /dev/md0 --auto=yes --level=5 --raid-devices=4 /dev/sdb1 /dev/sdc1 /dev/sdd1 /dev/sde1
+    --create   -> neues raid
+    --verbose
+    /dev/md0   -> gerätedatei für das raid array
+    --auto=yes   -> automatische erstellung der gerätedatei, die nicht partitionierbar ist
+    --level=5   -> 0,1,4,5,6,10
+    --raid-devices=4   -> anzahl der zu verwendenden geräte
+    /dev/sdb1 ...   -> auflistung der zu verwendenden geräte
+  $ mkfs.ext4 /dev/md0   -> ext dateisystem erstellen
+  $ mkdir /raid   -> ordner für einhänge punkt erstellen
+  $ mount /dev/md0 /raid   -> raid einhängen
+  /etc/fstab
+    > /dev/md0   /raid   ext4   defaults   0 0
+  $ mdadm --detail /dev/md0   -> zeigt infos zum raid an
+
+  /etc/mdadm/mdadm.conf
+    > MAILADDR raid-admin@domain.com   -> mailadresse für benachrichtigung bei fehlern
+    > MAILFROM fileserver007@domain.com   -> damit man weiß welcher pc
+  bei problemen und /etc/fstab wird ausgeschlossen, kann folgendes versucht werden:
+    $ mdadm --detail --scan >> /etc/mdadm/mdadm.conf
+
+  bestehendes raid erweitern
+    $ sfdisk /dev/sdb -d | sfdisk /dev/sdf   -> partitionstabelle auf neues laufwerk schreiben
+    $ mdadm --add /dev/md0 /dev/sdf1
+    $ mdadm --detail /dev/md0   -> überprüfen ob alles geklappt hat
+      /dev/sdf1 sollte als spare disk auftauchen
+    $mdadm --grow --raid-devices=5 /dev/md0
+      status kann mit $ cat /proc/mdstat   geprüft werden
+    $ resize2fs /dev/md0   -> dateisystem vergrößern (umount nicht notwendig)
+
+
+--- 204.2 ---
+hdparm
+  festplattenparamter auslesen und einstellen
+  physikalische merkmale des laufwerks
+  -a   read-ahead-konfiguration ablesen oder setzen
+  -B#   einstellungen für apm ändern (#in[1,255])
+  -g   festplattengeometrie anzeigen
+  -i   identifikationsinformationen anzeigen (was dem kernel gesagt wurde)
+  -I   identifikationsinformationen anzeigen (direkt von der festplatte)
+  -r[0|1]   read-only-flag auslesen oder setzen
+  -z   zwingt den kernel, partitionstabelle neu einzulesen
+  -d   de- oder aktivieren des dma modus. dma entlastet cpu für mögl zusätzl performanz
+  -X   ändert einstellung (MDMA/SDMA). meist in komb mit -d1
