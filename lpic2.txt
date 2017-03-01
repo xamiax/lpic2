@@ -753,3 +753,115 @@ hdparm
   -z   zwingt den kernel, partitionstabelle neu einzulesen
   -d   de- oder aktivieren des dma modus. dma entlastet cpu für mögl zusätzl performanz
   -X   ändert einstellung (MDMA/SDMA). meist in komb mit -d1
+
+sdparm
+  scsi page modes auslesen
+  scsi laufwerke, cd-/dvd-laufwerke, usb sticks
+  --enumerate   verfügbare seiten und felder listen
+  $ sdparm /dev/sda   -> gibt infos aus
+  spdarm kann auch scsi kommandos an gerät schicken
+
+tune2fs
+  -e ERROR-BEHAVIOUR   festlegen, wie kernel bei fehler reagieren soll
+    continue   fehler ignorieren
+    remount-ro   festplatte als read only wieder einhängen
+    panic   kernel panic auslösen. system wird angehalten
+  -m RESERVED-BLOCKS-PERCENTAGE   reservierten speicher festlegen (root +)
+  -r RESERVED-BLOCK-COUNT   reservierten speicher festlegen (root +)
+  -u USER   benutzer festlegen, die reservierten speicher nutzen dürfen. name oder uid
+  -g GROUP   gruppen festlegen, die reservierten speicher nutzen dürfen. name oder gid
+  -s [0|1]   (de-)aktivieren verwendung von spare superblocks. (minimal)
+  -l /dev/sda1   liste gesetzte parameter
+
+iscsi
+  übertragung des scsi protokolls über tcp
+  serverseitig - iscsi-target
+  clientseitig - iscsi-initiator
+  LUN - logical unit number
+  pkg iscsitarget
+  pkg iscsitarget-dkms meist zusätzlich benötigt
+
+iscsi target konfigurieren
+  /etc/default/iscsitarget
+    > ISCSITARGET_ENABLE=true
+  $ mkdir /targets
+  $ dd if=/dev/zero of=/targets/speicher-lun0 count=0 obs=1 seek=10G
+  /etc/iet/ietd.conf
+    > Target iqn.2013-11.tld.domain:imagespeicher
+    > Lun 0 Path=/targets/speicher-lun0,Type=fileio,ScsiID=lun0,ScsiSN=lun0
+    Target ist iscsi qualified name (iqn)
+      iqn   statisch
+      datum im format yyyy-mm
+      name der domäne in umgekehrter hierarchischer abfolge
+      doppelpunkt gefolgt von beliebigem namen
+  $ /etc/init.d/iscsitarget start
+
+iscsi initiator konfigurieren
+  pkg open-iscsi
+  /etc/iscsi/iscsid.conf
+    > node.startup = automatic
+  $ iscsiadm -m discovery -t st -p 192.168.50.1   -> infos zum bereitgestellten target
+  $ iscsiadm -m node --login   -> mit target verbinden
+  $ dmesg | tail   -> sollte ergebnis liefern
+  sollte nun unter /dev/sdb erreichbar sein
+
+--- 204.3 ---
+lvm
+  logical volume manager
+  physical volume (pv)
+    vergleichbar mit echten partitionen
+    werden mit fdisk partitioniert
+    dateisystemtyp (8e)
+  volume group (vg)
+    zusammenschluss mehrerer pv
+    können nachträglich mit weiteren pv erweitert werden
+  logical volume (lv)
+    werden innerhald einer vg erstellt
+    aus sicht des dateisystems ist das eine partition
+
+  $ ls -l /sbin/pv* /sbin/lv* /sbin/vg*
+    falls keine ergebnisse muss lvm2 installiert werden
+
+lvm konfigurieren
+  pv erstellen
+    $ vgscan -v   -> durchsucht alle blockorientierten geräte nach lvm
+      ergebis wird in /etc/lvm/cache/.cache gespeichert
+    /etc/lvm/lvm.conf
+    partitionen erstellen (typ 8e)
+    $ vgscan -v   -> system erfährt von neuen pv
+    $ pvcreate -v /dev/sdb1
+    $ pvdisplay
+  vg erstellen
+    $ vgcreate vg_big /dev/sdb1 /dev/sdc1 /dev/sdd1 /dev/sde1
+    $ vgdisplay
+  lv erstellen
+    best practice name mit lv_ prefix
+    $ lvcreate -n lv_big_1 -L 20G vg_big
+      gerätedatei wird /dev/vg_big/lv_big_1
+    $ lvdisplay /dev/vg_big/lv_big_1
+  lv verwenden
+    mkfs.ext4 /dev/vg_big/lv_big_1
+  lv vergrößern
+    $ lvextend -L 25G /dev/vg_big/lv_big_1
+    $ resize2fs /dev/vg_big/lv_big_1
+  lv verkleinen
+    $ umount /dev/vg_big/lv_big_1
+    $ e2fsck -f /dev/vg_big/lv_big_1
+    $ resize2fs /dev/vg_big/lv_big_1 1024000   (1024000 blöcke x 4k = 4G)
+    $ lvreduce -L 4G /dev/vg_big/lv_big_1
+  pv aus vg entfernen oder hinzufügen
+    $ vgreduce -a vg_big
+    $ vgextend vg_big /dev/sdc1
+
+lvm snapshots
+  $ lvcreate -L 1G -n big_1_backup /dev/vg_big/lv_big_1
+  $ mount /dev/vg_big/big_1_backup /backup/
+  $ tar -pzcf backup.tar.gz /backup/
+  $ umount /backup
+  $ lvremove /dev/vg_big/big_1_backup
+  
+/dev/mapper
+  komponente des kernels, die die gerätedateien aufeinander abbildet
+  /dev/vg_nig/lv_big_1 ist eigentlich /dev/mapper/vg_big/lv_big_1
+    das verlinken tut der device mapper
+
