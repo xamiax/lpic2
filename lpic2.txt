@@ -865,3 +865,200 @@ lvm snapshots
   /dev/vg_nig/lv_big_1 ist eigentlich /dev/mapper/vg_big/lv_big_1
     das verlinken tut der device mapper
 
+
+--- 206.1 ---
+tar - tape archiver
+  .tar   -> nicht komprimiert
+    $ tar -xvf file.tar
+  .tar.gz   -> mit gzip komprimiert
+    $ tar -xvzf file.tar.gz
+  .tgz   -> siehe .tar.gz
+  .tar.bz2   -> mit bzip2 komprimiert
+    $ tar -xvjf file.tar.bz2
+
+tar ball installieren
+  $ cd /usr/src
+  $ tar -xvzf xmbmob205.tar.gz
+  $ cd xmbmon205
+  $ ./configure   -> falls nicht vorhanden, lese read.me
+  $ make
+  $ make install
+
+semiimportant
+  $ apt-get install linux-headers-$(uname -r)
+    installiert zum kernel passende linux headers
+
+tar
+  -x   (extract)
+  -z   (gzip/gunzip)
+  -v   (verbose)
+  -c   (create)
+  -j   (bzip2/bunzip2)
+  -f   (file) als ein-/ausgabe nutzen (ansonsten /dev/rmt0 - bandlaufwerk)
+  -t   list content
+
+  $ tar -cvjf backup.tar.bz2 /etc/*
+  $ tar -tvjf backup.tar.bz2 | less
+  $ tar -xvjf backup.tar.bz2
+
+gzip
+  -c   (keep) original file (ausgabe erfolgt dann auf stdout, daher pipen)
+  -l   list
+  -d   (decompress)
+  $ gzip file.odt -c > file.odt.gz
+
+gunzip
+  gunzip
+  gzip -d
+  zcat   -> guinzip -c
+
+bzip2
+  höhere kompression als gzip
+  
+bunzip2
+  bunzip2
+  bzip2 -d
+  bzcat
+
+patch
+  ???
+
+
+--- 206.2 ---
+backup or not to back up?
+  [x]  /bin   programme 
+  [x]  /boot  kernel
+  [ ]  /dev   gerätedateien
+  [x]  /etc   konfigurationsdateien
+  [x]  /home  benutzerdaten
+  [x]  /lib   programmbibliotheken
+  [ ]  /mnt   einhängepunkt
+  [x]  /opt   optionale programme
+  [ ]  /proc  pseudoverzeichnis
+  [x]  /root  programme und daten von root
+  [x]  /sbin  programme für root
+  [?]  /tmp   temporäre daten
+  [x]  /usr   programme für benutzer
+  [x]  /var   eingehende mails, zonedaten für bind
+
+backup allgemein
+  wenig kosten verursachen
+  wiederherstellbarkeit
+  tagesgeschäft nicht behindern -> außerhalb der geschäftszeiten
+  im notfall schnellst mögliche wiederherstellbarkeit
+  auch äußeren einflüssen vor ort standhalten (brand, wasserschaden..)
+
+  normalbackup
+    vollsicherung
+  differenzielle backup
+    backup aller daten, die sich seit letzter vollsicherung veränderten
+  inkrementelle backup
+    backup aller daten, die sich seit letztem inkerementellem backup veränderten
+  kopierbackup
+    zusätzliches backup vor riskanten administrativen eingriffen
+    zur aufbewahrung an anderem ort
+
+bandlaufwerke
+  floppy streamer
+    billiger
+  scsi streamer
+    schneller
+  /dev/st0   scsi tape rückspulend
+  /dev/nst0  scsi tape nicht rückspulend
+  /dev/ft0   floppy tape rückspulend
+  /dev/nft0  floppy tape nicht rückspulend
+
+dd
+  $ dd if=/dev/sda of=mbr.backupibs=512 count=1   -> mbr sicherung
+    ibs - in block size
+  $ dd if=/home of=/dev/st0 cbs=16b
+    sichert home auf erstem scsi streamer und spult anschließend zurück
+    cbs macht iwie gute größe - weiß der geier
+
+dump
+  nur ext dateisysteme
+  nur dateisysteme, die in /etc/fstab 5 spalte =1
+  10 backup level
+  level 0 ist vollsicherung und wird als erstes ausgeführt
+  andere level sind inkrementelle backups
+  $ dump -0 -B 800000 -f /dev/st0 /home   -> vollsicherung mit bandlänge 800M
+  $ dump -1a -f /dev/st0 /home   -> inkrementelle sicherung mit automatischer bandlänge
+restore
+  zum wiederherstellen von von dump erstellten backups
+  $ restore -i -f /dev/st0   -> interaktiv um einzelne dateien wiederherzustellen
+  $ restore -r -f /dev/st0   -> komplettes dateisystem wiederherstellen
+  $ restore -C -f /dev/st0   -> vergleicht das backup mit dateisystem
+
+tar
+  -x   (extract)
+  -c   (create)
+  -t   (table) zeige inhalt von archiv
+  -z   (gzip)
+  -j   (bzip2)
+  -v   (verbose)
+  -f   (file)
+  -w   interaktiv, fragt bei jeder datei nach
+
+  $ tar -cvf /dev/st0 /home   -> erstellt backup von home auf bandlaufwerk
+  $ tar -xvf /dev/st0   -> wiederherstellen des gesamten backups
+  $ tar -xvf /dev/st0 /home/harry/steuer.ods   -> wiederherstellen einzelner datei
+
+mt
+  (magnetic tape)
+  $ mt -f /dev/st0 rewind   -> spült das bandlaufwerk zurück
+  $ mt -f /dev/st0 eom   -> spult das bandlaufwerk ans datenende
+
+rsync
+  berechtigungen, timestamps, eigentümer und gruppen bleiben erhalten
+  -a   (archivmodus) (inkl -p)
+  -z   komprimiert daten lokal und werden dann auf entferntem rechner wieder entpackt
+  -r   (recursive)
+  -v   (verbose)
+  -u   (update) dateien, die am zielort neuer sind, werden ausgelassen
+  -p   (permissions) bleiben erhalten (-a ipliziert das)
+  -4   (ipv4)
+  -6   (ipv6)
+  -e   remote shell
+
+  $ rsync -avz /storage/buch/ 192.168.50.12:/backup   -> kopiert alle datein aus buch nach backup
+  $ rsync -avz /storage/buch 192.168.50.12:/backup   -> kopiert ordner buch nach backup
+
+
+--- 206.3 ---
+/etc/issue
+  wird noch vor anmeldung angezeigt
+  \n   hostname
+  \o   domainname
+  \b   baudrate des terminal
+  \l   line name (tty)
+  \s   systemname (os)
+  \m   maschinenarchitektur (zb i586)
+  \r   releasenummer des kernel
+  \v   version os version
+  \d   datum
+  \t   zeit
+  \u   benutzer, anzahl angemeldeter benutzer
+  \U   benutzer, anzahl angemeldeter benutzer
+
+/etc/issue.net
+  identisch mit /etc/issue
+  nur bei anmeldung über netzwerk
+
+/etc/motd
+  wird nach anmeldung angezeigt
+
+wall
+  schickt nachricht aus datei oder stdin an alle verbundenen terminals
+  $ echo "wichtige nachricht an alle\!" | wall
+  > Broadcast Message from root@server
+  >        (/dev/pts/0) at 11:02 ...
+  > wichtige nachricht an alle!
+
+/sbin/shutdown
+  mit $ shutdown wird rechner heruntergefahren und benutzer informiert
+  -k   fährt nicht herunter sondern benachrichtigt nur
+  $ shutdown -k 10
+  > An alle Benutzer verteilte achricht von root@server
+  > ........(/dev/pts/0) um 04:20 ...
+  > The system is going down for maintenance in 10 minutes!
+
