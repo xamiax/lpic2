@@ -866,6 +866,157 @@ lvm snapshots
     das verlinken tut der device mapper
 
 
+--- 205.1 ---
+/sbin/ifconfig
+  konfiguration von netzwerkkarten
+  netzwerkschnittstellen (de)aktivieren
+  dabei gehen routingtabellen verloren
+  $ ifconfig eth1 down
+  $ ifconfig eth1 20.14.5.88 netmask 255.255.255.192
+    $ ifconfig eth1 up   -> wird mitausgeführt
+  $ifconfig eth1 inet6 add 2001:6f8:1d2d::4
+  $ ifconfig   -> ohne paramteter gibt konfiguration aller schnittstellen
+  $ ifconfig eth1   -> gibt konfiguration der schnittstelle
+
+/sbin/route
+  routingtabellen überprüfen und anpassen
+  $ route add default gw 20.14.5.65
+  $ route add -net 172.16.0.0 netmask 255.255.0.0 gw 192.168.0.10
+    $ route add -net 172.16.0.0/16 gw 192.168.0.10
+  $ route -A inet6 add 2001:6f8:1ce:1::/64 gw 2001:6f8:1ce:0::5
+  $ route -C   -> gecachete routingtabelle anzeigen
+
+/sbin/arp bzw /usr/sbin/arp
+  arp cache anzeigen oder einzelne bzw alle einträge löschen
+  ohne paramter zeigt arp cache an
+  $ arp -d 192.168.0.104   -> löscht diesen eintrag
+  $ arp -i eth1 -d 192.168.0.104
+
+/sbin/ip
+  überprüfung und konfiguration von netzwerkschnittstellen
+  $ ip route show   -> route -n
+  $ ip neighbour show   -> arp
+  $ ip addr show eth1   -> ifconfig
+  $ ip tunnel show   -> tunnel anzeigen
+  $ ip monitor   -> live
+
+/sbin/iwconfig
+  bietet zusätzliche wlan parameter zu ifconfig
+  $ iwconfig wlan0 txpower 30mW
+  $ iwconfig wlan0 txpower [off|on]
+
+/sbin/iwlist
+  infos zu wlankarte, erreichbare ap und ad-hoc-netzwerke
+  folgende optionen
+    scanning
+    frequency
+    rate
+    keys
+    power
+    typower
+    retry
+    event
+    auth
+    wpakeys
+    genie
+    modulation
+
+
+--- 205.2 ---
+/sbin/ifconfig
+  $ ifconfig eth1:1 192.168.0.60   -> zusätzliche ipadresse
+    nachprüfen mit   $ ifconfig | grep ^eth1
+    wieder löschen mit   $ ifconfig eth1:1 down
+  $ ifconfig eth1 inet6 add 2a01:198:5dd:50::200/64   -> zusätzliche ipv6adresse
+    wieder löschen mit   $ ifconfig eth1 inet6 del 2a01:198:5dd:50::200/64
+
+/sbin/route
+  versteht cidr-notation
+    $ route add -net 172.16.0.0/16 gw 192.168.0.98
+  nur einen host hinzufügen   $ route add -host 192.168.1.7 gw 192.168.0.4
+    keine netzmaske nötig bei host
+    nur /32 wäre ok. andere führen zu fehler
+  $ route del -net 172.16.0.0/16 gw 192.168.0.98
+  $ route del -host 192.168.1.7 gw 192.168.0.4
+  $ route -A inet6 add 2001:6f8:1cfe:1::/64 gw 2001:6f8:1cfe:0::4
+  $ route -A inet6 add 2001:6fe:1cfe:7::47/128 gw 2001:6f8:1cfe:0::47
+    /64 oder /128 impliziert, ob netzwerk oder host
+  $ route -A inet6 del 2001:6f8:1cfe:1::/64 gw 2001:6f8:1cfe:0::4
+  $ route -A inet6 del 2001:6fe:1cfe:7::47/128 gw 2001:6f8:1cfe:0::47
+
+/sbin/netstat
+  -n   (numeric) keine hostauflösung
+  -l   nur sockets im status LISTEN anzeigen
+  -p   dazugehörige prozesse und pid anzeigen
+  -r   routingtabelle anzeigen
+  -i   liste der netzwerk schnittstellen anzeigen
+  -a   alle verbindungen (nicht nur an denen host lauscht) anzeigen
+  -c   continuous
+
+/bin/ping
+  icmp-anfrage (echo request)
+  ping6 für ipv6
+
+/usr/sbin/tcpdump
+  -i INTERFACE   interface aussuchen
+  -n   (numeric) keine hostauflösung
+  -w   ausgabe in datei
+  -F   eingabe aus datei
+  $ tcpdump tcp port 80 -i eth1   -> http datenverkehr an schnittstelle eth1
+
+/usr/sbin/lsof
+  -i   ip sockets werden ausgegeben
+  -n   (numeric) keine host auflösung
+  -P   verhindert auflösung der portnummern
+  $ lsof -inP
+
+/usr/bin/nc (netcat)
+  $ nc -l PORT   -> an PORT lauschen, ausgabe an stdout
+  $ nc -l PORT | dd of=file.txt   -> an PORT lauschen, ausgabe nach file.txt
+
+/sbin/ip
+  $ ip address add 172.16.0.15/16 dev eth0   -> zusätzliche ip adresse an schnittstelle binden
+    ->diese adresse wird von ifconfig nicht angezeigt sondern nur mit ip wieder
+  $ ip address show dev eth0   -> zeigt alle ip adressen
+  $ ip address del 172.16.0.15/16 dev eth0
+  $ ip route add 172.20.0.0/16 via 192.168.0.98   -> routing regel hinzufügen
+    ->$ route add -net 172.20.0.0/16 gw 192.168.0.98
+  $ ip route del 172.20.0.0/16 via 192.168.0.98
+  $ ip address add 2a01:198:5dd::47/64 dev eth0   -> zusätzliche ipv6 adresse an schnittstelle binden
+  $ ip route add 2001:6f8:1cfe:4f44::/64 via 2001:6f8:1cfe::4   -> ipv6 routing regel hinzufügen
+
+nmap
+  portscanner
+  schickt zuerst icmp-echo-anforderung (ping)
+    falls keine antwort, wird davon ausgegangen, dass rechner down ist
+    $ nmap -P0 domain.com   -> erzwingen
+  $ nmap 79.193.173.223
+  $ nmap -P0 192.168.0.0/24   -> ganzes klasse-c-netz scannen
+  $ nmap -p 80,443 www.domain.com   -> einzelne ports scannen
+  $ nmap 192.168.50.10 -O   -> zusätzlich infos zum betriebssystem
+
+wireshark
+  protokollanalyzer
+  nachfahre von ethereal
+  benötigt rootrechte
+  
+
+--- 205.3 ---
+/etc/network/   -> debian
+  ./if-pre-up.d/
+  ./if-up.d/
+  ./if-down.d/
+  ./if-post-down.d/
+  ./interfaces/
+    enthalten skripte, die zu ihrer zeit ausgeführt werden
+    die skripte rufen meist sellbst init skripte auf
+    eigene skripte am besten in ./if-up.d/
+    zur konfiguration von netzwerkadaptern ./interfaces/
+
+/etc/sysconfig/network-scripts/   -> redhat
+  
+
+
 --- 206.1 ---
 tar - tape archiver
   .tar   -> nicht komprimiert
