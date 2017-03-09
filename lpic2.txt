@@ -1014,7 +1014,40 @@ wireshark
     zur konfiguration von netzwerkadaptern ./interfaces/
 
 /etc/sysconfig/network-scripts/   -> redhat
+  enthält scripts, die netzwerkschnittstellen starten und beenden
+  konfigurationsdatei heißen in etwa ./ifcfg-eth0
+  für jede schnittstelle eine konfigurationsdatei
+  -> 197 beispiel
+  schnittstelle ist an uuid und an mac adresse gebunden
+  zusätzlich auch in der datei /etc/udev/rules.d/70-persistent-net.rules
+
+debian: /etc/init.d/networking restart
+redhat: /etc/init.d/network restart
+
+/etc/resolv.conf
+  hauptkonfigurationsdatei für dns client
+  enthält ip adressen der zu verwendenden dns server
+  > nameserver IPADDRESS
+    gibt die ipadresse des dns servers an
+  > domain DOMAIN.COM
+    sagt dem rechner, in welcher domäne er mitglied ist
+    bei unbekanntem host wird suffix automatisch ergänzt
+  > search DOMAIN.COM
+    wird benutzt, damit rechner unterschiedlicher domänen sich allein über host finden
+    wird selten benutzt
+
+/etc/nsswitch.conf
+  gibt an, wo in bestimmten fällen nach namensauflösung, authentifizierung etc gesucht wird
+  > passwd: files
+  > group: files
+  > hosts: files dns
+  > networks: files dns
+
+/etc/hosts
+  historisch betrachtet ein vorläufer von dns
+  heute wird damit localhost mit der loopback adresse verknüpft
   
+PAUSE
 
 
 --- 206.1 ---
