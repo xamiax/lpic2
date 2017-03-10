@@ -1046,8 +1046,49 @@ redhat: /etc/init.d/network restart
 /etc/hosts
   historisch betrachtet ein vorläufer von dns
   heute wird damit localhost mit der loopback adresse verknüpft
-  
-PAUSE
+  > IPADDRESS   FQDN
+
+/etc/hostname
+  beinhaltet den namen des rechners
+
+/bin/hostname
+  domainname und dnsdomainname sind softlinks auf hostname
+  beim aufruf wird geprüft, mit welchem befehl
+  hostname   -> zeigt/ändert hostname
+  domainname   -> zeigt/ändert nis-/yp-domainenname
+  dnsdomainname   ->zeigt/ändert dns-domainenname
+  falls hostname fqdn ausgibt, muss beim ändern fqdn angegeben werden
+
+/usr/bin/traceroute
+  um langsamen router auf dem weg zu finden
+  sendet udp-paket mit steigender ttl (ttl=1)
+  dadurcht wird der erste router paket verwerfen und mit fehler antworten
+  dadurch ist paketlaufzeit zum ersten router bekannt
+  -n   numeric
+  TODO weitere optionen checken
+
+/var/log/syslog
+/var/log/messages
+/bin/dmesg
+
+ifconfig
+route
+netstat
+ping
+
+/etc/hosts.allow
+/etc/hosts.deny
+  dienen der konfiguration von tcp wrappern
+  /etc/hosts.allow > /etc/hosts.deny
+  keine regel gefunden -> zugriff gewährt
+  datei nicht vorhanden -> als wären sie leer
+  > ALL : ALL
+  > ALL : LOCAL
+
+networkmanager
+  kann auch über kommandozeile gesteuert werden
+  mit dem programm nmcli
+  konfiguration dann in den dateien in /etc/NetworkManager/ 
 
 
 --- 206.1 ---
