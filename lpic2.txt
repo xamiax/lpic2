@@ -1,11 +1,13 @@
 --- 200.1 ---
 sar und iostat (in sysstat enthalten)
   lesen /proc aus ohne schreibzugriff, daher keine rootrechte notwendig
-  sar/iostat $zeitabstand $anzahlMessungen
+  sar/iostat ZEITABSTAND MESSUNGEN
     -b   I/O-Transferraten
-  /etc/init.s/sysstat -> ENABLED="true"
-  /etc/init.d/sysstat start
-  sysstat -A
+  sysstat als daemon
+    sammelt dann über längeren zeitraum leistungsdaten
+    /etc/default/sysstat   > ENABLED="true"
+    /etc/init.d/sysstat start
+    sar -A   -> zeigt gesammelte daten an (nach frühestens 10 min)
   iostat
     -c   cpulast
     -d   verwendung von datenträgern
@@ -57,6 +59,20 @@ collectd
 
 
 --- 201.1 ---
+/usr/src
+  hier kernel-quellen entpacken
+  bsp /usr/srx/linux-2.6.38.3
+  ln -s /usr/src/linux-2.6.38.2 /usr/src/linux
+/usr/src/linux/Documentation/
+  ausführliche dokumentationen zum kernel
+/usr/src/linux
+  $ make htmldocs
+  $ make pdfdocs
+    erstellt dokumentation in jeweiligem dateityp
+/usr/src/linux/arch/x86/boot/bzImage
+  ist der kernel
+  bz - big size (größer als 512k)
+  zImage - kleiner kernel (kaum noch in umlauf)
 
 
 --- 201.2 ---
